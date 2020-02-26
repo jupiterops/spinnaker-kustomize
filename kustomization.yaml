@@ -1,0 +1,52 @@
+apiVersion:  kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: spinnaker
+commonLabels:
+  app: halyard
+  app.kubernetes.io/name: spin
+  app.kubernetes.io/part-of: spinnaker
+
+commonAnnotations:
+  moniker.spinnaker.io/application: '"spin"'
+  moniker.spinnaker.io/cluster: '"halyard"'
+
+bases:
+  - namespace.yaml
+  - spinnaker.yaml
+
+resources:
+  - service-account.yaml
+  - ingress.yaml
+
+secretGenerator:
+  - name: kubeconfig
+    files:
+      - config
+    type: Opaque
+
+configMapGenerator:
+  - name: halconfig
+    files:
+      - config=halconfig.yaml
+      - service-settings/clouddriver.yml
+      - service-settings/deck.yml
+      - service-settings/fiat.yml
+      - service-settings/front50.yml
+      - service-settings/gate.yml
+      - service-settings/igor.yml
+      - service-settings/redis.yml
+      - profiles/clouddriver-local.yml
+      - profiles/front50-local.yml
+      - profiles/gate-local.yml
+      - profiles/orca-local.yml
+      - profiles/settings-local.js
+
+---
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: spinnaker
+    spec:
+      replicas: 1

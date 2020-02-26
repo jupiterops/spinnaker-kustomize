@@ -1,0 +1,28 @@
+services.redis.baseUrl: redis://redis.internal:6379
+kubernetes:
+  serviceAccountName: spinnaker
+  nodeSelector:
+    application: spinnaker
+  securityContext:
+    fsGroup: 65533
+
+aws:
+  enabled: true
+  lambda:
+    enabled: true
+  defaultAssumeRole: role/spinnaker
+  defaultRegions:
+    - name: ap-south-1
+  accounts:
+    - name: accountA
+      accountId: '11111111111'
+      providerVersion: V1
+      regions:
+        - name: ap-south-1
+      lambdaEnabled: true
+    - name: accountB
+      accountId: '222222222'
+      providerVersion: V1
+      regions:
+        - name: ap-south-1
+      lambdaEnabled: true

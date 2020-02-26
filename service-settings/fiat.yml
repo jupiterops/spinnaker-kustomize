@@ -1,0 +1,8 @@
+enabled: false
+skipLifeCycleManagement: true
+kubernetes:
+  serviceAccountName: spinnaker
+  nodeSelector:
+    application: spinnaker
+  securityContext:
+    fsGroup: 65533

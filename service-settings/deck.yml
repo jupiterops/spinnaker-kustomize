@@ -1,0 +1,13 @@
+artifactId: gcr.io/spinnaker-marketplace/deck:2.15.0-20200131172818
+
+env:
+  API_HOST: http://spin-gate:8084
+  
+kubernetes:
+  serviceType: ClusterIP
+  serviceAccountName: spinnaker
+  useExecHealthCheck: false
+  nodeSelector:
+    application: spinnaker
+  securityContext:
+    fsGroup: 65533

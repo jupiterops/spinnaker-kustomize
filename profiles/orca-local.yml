@@ -1,0 +1,131 @@
+tasks:
+  daysOfExecutionHistory: 2
+pollers:
+  oldPipelineCleanup:
+    enabled: true
+    minimumPipelineExecutions: 5
+    thresholdDays: 2
+services.redis.baseUrl: redis://redis.internal:6379
+
+webhook:
+  preconfigured:
+    - label: Lambda - Get Functions
+      type: lambdaGetFunctions
+      enabled: true
+      description: Get Lambda Functions
+      method: GET
+      url: http://spin-clouddriver:7002/functions
+      customHeaders:
+        Accept:
+          - "application/json"
+    - label: Lambda - Update Function Code
+      type: lambdaUpdateFunctionCode
+      enabled: true
+      description: Update Lambda Function Code
+      method: POST
+      url: http://spin-clouddriver:7002/aws/ops/updateLambdaFunctionCode
+      customHeaders:
+        Accept:
+          - "application/json"
+        Content-Type:
+          - "application/json"
+      payload: |-
+        {
+          "credentials": "${#root['parameterValues']['account']}",
+          "region": "${#root['parameterValues']['region']}",
+          "functionName": "${#root['parameterValues']['functionName']}",
+          "s3bucket": "${#root['parameterValues']['bucketname']}",
+          "s3key": "${#root['parameterValues']['key']}",
+          "publish": "${#root['parameterValues']['publish']}"
+        }
+      parameters:
+        - label: Spinnaker Account Name
+          name: account
+          type: string
+        - label: Region
+          name: region
+          type: string
+        - label: Function Name
+          name: functionName
+          type: string
+        - label: S3 Bucket Name
+          name: bucketname
+          type: string
+        - label: S3 Key
+          name: key
+          type: string
+        - label: Publish
+          name: publish
+          type: string
+    - label: Lambda - Update Function Configuration
+      type: lambdaUpdateFunctionConfig
+      enabled: true
+      description: Update Lambda Function Configuration
+      method: POST
+      url: http://spin-clouddriver:7002/aws/ops/updateLambdaFunctionConfiguration
+      customHeaders:
+        Accept:
+          - "application/json"
+        Content-Type:
+          - "application/json"
+      payload: |-
+        {
+          "region": "${#root['parameterValues']['region']}",
+          "functionName": "${#root['parameterValues']['functionName']}",
+          "description": "${#root['parameterValues']['description']}",
+          "credentials": "${#root['parameterValues']['account']}",
+          "role": "${#root['parameterValues']['roleARN']}",
+          "timeout": "${#root['parameterValues']['timeout']}"
+        }
+      parameters:
+        - label: Region
+          name: region
+          type: string
+        - label: Function Name
+          name: functionName
+          type: string
+        - label: Description
+          name: description
+          type: string
+        - label: Spinnaker Account Name
+          name: account
+          type: string
+        - label: Role ARN
+          name: roleARN
+          type: string
+        - label: Timeout (secs)
+          name: timeout
+          type: string
+    - label: Github - Github Commit Status
+      type: githubStatus
+      enabled: true
+      description: Update a Github Commit Status
+      method: POST
+      customHeaders:
+        Authorization:
+          - token githubtoken
+      url: https://api.github.com/repos/jupitermoney/${parameterValues['gitRepo']}/statuses/${parameterValues['gitCommit']}
+      payload: |-
+        {
+          "state": "${parameterValues['status']}",
+          "target_url": "${parameterValues['targetUrl']}",
+          "context": "${parameterValues['context']}"
+        }
+      parameters:
+        - label: Git Repo
+          name: gitRepo
+          description: The Git Repo to publish a status for
+          type: string
+        - label: Git Commit
+          name: gitCommit
+          description: The Git Commit to create a status for
+          type: string
+        - label: Status
+          name: status
+          type: string
+        - label: Target URL
+          name: targetUrl
+          type: string
+        - label: Context
+          name: context
+          type: string

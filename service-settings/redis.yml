@@ -1,0 +1,3 @@
+overrideBaseUrl: redis://redis.internal:6379
+skipLifeCycleManagement: true
+enabled: false

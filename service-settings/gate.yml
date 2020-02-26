@@ -1,0 +1,8 @@
+kubernetes:
+  serviceType: ClusterIP
+  serviceAccountName: spinnaker
+  nodeSelector:
+    application: spinnaker
+  useExecHealthCheck: false
+  securityContext:
+      fsGroup: 65533

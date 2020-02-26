@@ -1,0 +1,8 @@
+redis.configuration.secure: true
+services.redis.baseUrl: redis://redis.internal:6379
+server:
+  tomcat:
+    protocolHeader: X-Forwarded-Proto
+    remoteIpHeader: X-Forwarded-For
+    internalProxies: .*
+    httpsServerPort: X-Forwarded-Port

@@ -1,0 +1,176 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spinnaker-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: spinnaker
+    namespace: spinnaker
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-halyard
+  namespace: spinnaker
+spec:
+  ports:
+    - port: 8064
+      targetPort: 8064
+      protocol: TCP
+  selector:
+    app: spin
+    stack: halyard
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: spin-halyard
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: halyard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spin
+      stack: halyard
+  serviceName: spin-halyard
+  template:
+    metadata:
+      labels:
+        app: spin
+        stack: halyard
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: halyard-daemon
+          image: gcr.io/spinnaker-marketplace/halyard:1.31.1
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - "cp -R /home/spinnaker/staging/.hal/. /home/spinnaker/.hal/ && /opt/halyard/bin/halyard"
+          readinessProbe:
+            exec:
+              command:
+                - wget
+                - -q
+                - --spider
+                - http://localhost:8064/health
+          ports:
+            - containerPort: 8064
+          volumeMounts:
+            - name: persistentconfig
+              mountPath: /home/spinnaker/.hal
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/config
+              subPath: config
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/deck.yml
+              subPath: deck.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/gate.yml
+              subPath: gate.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/igor.yml
+              subPath: igor.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/fiat.yml
+              subPath: fiat.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/front50.yml
+              subPath: front50.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/clouddriver.yml
+              subPath: clouddriver.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/service-settings/redis.yml
+              subPath: redis.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/profiles/front50-local.yml
+              subPath: front50-local.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/profiles/clouddriver-local.yml
+              subPath: clouddriver-local.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/profiles/gate-local.yml
+              subPath: gate-local.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/profiles/orca-local.yml
+              subPath: orca-local.yml
+            - name: halconfig
+              mountPath: /home/spinnaker/staging/.hal/default/profiles/settings-local.js
+              subPath: settings-local.js
+            - name: kubeconfig
+              mountPath: /home/spinnaker/.kube/config
+              subPath: config
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app.kubernetes.io/name"
+                    operator: In
+                    values:
+                      - clouddriver
+              topologyKey: "kubernetes.io/hostname"
+      serviceAccountName: spinnaker
+      volumes:
+        - name: halconfig
+          configMap:
+            name: halconfig
+        - name: kubeconfig
+          secret:
+            secretName: kubeconfig
+  volumeClaimTemplates:
+    - metadata:
+        name: persistentconfig
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "gp2"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hal-deploy-apply
+  namespace: spinnaker
+  labels:
+    stack: hal-deploy
+spec:
+  template:
+    metadata:
+      labels:
+        stack: hal-deploy
+    spec:
+      restartPolicy: OnFailure
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - halyard
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: hal-deploy-apply
+          image: gcr.io/spinnaker-marketplace/halyard:1.31.1
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - "hal deploy apply --daemon-endpoint http://spin-halyard.spinnaker:8064"

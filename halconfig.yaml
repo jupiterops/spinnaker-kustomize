@@ -1,0 +1,438 @@
+currentDeployment: default
+deploymentConfigurations:
+- name: default
+  version: 1.18.3
+  providers:
+    appengine:
+      enabled: false
+      accounts: []
+    aws:
+      enabled: false
+      accounts: []
+      defaultRegions:
+        - name: ap-south-1
+      primaryAccount: aws-dev
+    ecs:
+      enabled: false
+      accounts: []
+    azure:
+      enabled: false
+      accounts: []
+      bakeryDefaults:
+        templateFile: azure-linux.json
+        baseImages: []
+    dcos:
+      enabled: false
+      accounts: []
+      clusters: []
+    dockerRegistry:
+      enabled: true
+      accounts:
+        - name: dev-ecr
+          requiredGroupMembership: []
+          providerVersion: V2
+          permissions: {}
+          address: https://11111111.dkr.ecr.ap-south-1.amazonaws.com
+          username: AWS
+          passwordCommand: AWS_ROLE_ARN="arn:aws:iam::11111111:role/spinnaker" AWS_WEB_IDENTITY_TOKEN_FILE="/var/run/secrets/eks.amazonaws.com/serviceaccount/token" AWS_ROLE_SESSION_NAME="spinnaker" aws --region ap-south-1 ecr get-authorization-token --registry-ids 11111111 --output text --query 'authorizationData[].authorizationToken' | base64 -d | sed 's/^AWS://'
+          email: fake.email@spinnaker.io
+          cacheIntervalSeconds: 30
+          clientTimeoutMillis: 60000
+          cacheThreads: 1
+          paginateSize: 100
+          sortTagsByDate: true
+          trackDigests: false
+          insecureRegistry: false
+          repositories: []
+        - name: dsdev-ecr
+          requiredGroupMembership: []
+          providerVersion: V2
+          permissions: {}
+          address: https://222222222.dkr.ecr.ap-south-1.amazonaws.com
+          username: AWS
+          passwordCommand: AWS_ROLE_ARN="arn:aws:iam::222222222:role/spinnaker" AWS_WEB_IDENTITY_TOKEN_FILE="/var/run/secrets/eks.amazonaws.com/serviceaccount/token" AWS_ROLE_SESSION_NAME="spinnaker" aws --region ap-south-1 ecr get-authorization-token --registry-ids 222222222 --output text --query 'authorizationData[].authorizationToken' | base64 -d | sed 's/^AWS://'
+          email: fake.email@spinnaker.io
+          cacheIntervalSeconds: 300
+          clientTimeoutMillis: 60000
+          cacheThreads: 1
+          paginateSize: 100
+          sortTagsByDate: true
+          trackDigests: false
+          insecureRegistry: false
+          repositories: []
+      primaryAccount: dev-ecr
+    google:
+      enabled: false
+      accounts: []
+      bakeryDefaults:
+        templateFile: gce.json
+        baseImages: []
+        zone: us-central1-f
+        network: default
+        useInternalIp: false
+    kubernetes:
+      enabled: true
+      accounts:
+        - name: dev
+          requiredGroupMembership: []
+          providerVersion: V2
+          permissions: {}
+          dockerRegistries:
+            - accountName: dev-ecr
+              namespaces: []
+          context: dev
+          configureImagePullSecrets: true
+          cacheThreads: 1
+          namespaces: []
+          omitNamespaces:
+            - kube-system
+            - kube-public
+            - spinnaker
+            - istio-system
+          kinds: []
+          omitKinds: []
+          customResources: []
+          cachingPolicies: []
+          liveManifestCalls: true
+          kubeconfigFile: /home/spinnaker/.kube/config
+          oAuthScopes: []
+          onlySpinnakerManaged: true
+        - name: staging
+          requiredGroupMembership: []
+          providerVersion: V2
+          permissions: {}
+          dockerRegistries:
+            - accountName: staging-ecr
+              namespaces: []
+          context: staging
+          configureImagePullSecrets: true
+          cacheThreads: 1
+          namespaces: []
+          omitNamespaces:
+            - kube-system
+            - kube-public
+            - spinnaker
+            - istio-system
+          kinds: []
+          omitKinds: []
+          customResources: []
+          cachingPolicies: []
+          liveManifestCalls: true
+          kubeconfigFile: /home/spinnaker/.kube/config
+          oAuthScopes: []
+          onlySpinnakerManaged: true
+      primaryAccount: dev
+    oracle:
+      enabled: false
+      accounts: []
+      bakeryDefaults:
+        templateFile: oci.json
+        baseImages: []
+    cloudfoundry:
+      enabled: false
+      accounts: []
+  deploymentEnvironment:
+    size: SMALL
+    type: Distributed
+    accountName: audit
+    imageVariant: SLIM
+    updateVersions: true
+    consul:
+      enabled: false
+    vault:
+      enabled: false
+    location: spinnaker
+    customSizing:
+      spin-clouddriver:
+        requests:
+          memory: 1.5Gi
+          cpu: 1
+      spin-deck:
+        requests:
+          memory: 64Mi
+          cpu: 50m
+      spin-echo:
+        requests:
+          memory: 1Gi
+          cpu: 100m
+      spin-front50:
+        requests:
+          memory: 650Mi
+          cpu: 200m
+      spin-gate:
+        requests:
+          memory: 650Mi
+          cpu: 100m
+      spin-orca:
+        requests:
+          memory: 1Gi
+          cpu: 300m
+      spin-rosco:
+        requests:
+          memory: 650Mi
+          cpu: 100m
+      spin-igor:
+        requests:
+          memory: 900Mi
+          cpu: 200m
+    sidecars: {}
+    initContainers: {}
+    hostAliases: {}
+    affinity: {}
+    tolerations:
+      clouddriver:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      deck:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      gate:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      front50:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      igor:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      orca:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      echo:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+      rosco:
+        - key: "application"
+          operator: "Equal"
+          value: "spinnaker"
+          effect: "NoSchedule"
+    nodeSelectors: {}
+    gitConfig:
+      upstreamUser: jm-ci-bot
+    livenessProbeConfig:
+      enabled: false
+    haServices:
+      clouddriver:
+        enabled: false
+        disableClouddriverRoDeck: false
+      echo:
+        enabled: false
+  persistentStorage:
+    persistentStoreType: s3
+    azs: {}
+    gcs:
+      rootFolder: front50
+    redis: {}
+    s3:
+      bucket: s3-spinnaker-repo
+      rootFolder: front50
+      region: ap-south-1
+      pathStyleAccess: false
+    oracle: {}
+  features:
+    chaos: false
+    pipelineTemplates: true
+    artifacts: true
+    artifactsRewrite: true
+    managedPipelineTemplatesV2UI: true
+  metricStores:
+    datadog:
+      enabled: false
+      tags: []
+    prometheus:
+      enabled: false
+      add_source_metalabels: true
+    stackdriver:
+      enabled: false
+    newrelic:
+      enabled: false
+      tags: []
+    period: 30
+    enabled: false
+  notifications:
+    slack:
+      enabled: true
+      botName: spinnaker
+      token: slack-token
+    twilio:
+      enabled: false
+      baseUrl: https://api.twilio.com/
+    github-status:
+      enabled: true
+      token: github-token
+  timezone: Asia/Kolkata
+  ci:
+    jenkins:
+      enabled: false
+      masters: []
+    travis:
+      enabled: false
+      masters: []
+    wercker:
+      enabled: false
+      masters: []
+    concourse:
+      enabled: false
+      masters: []
+    gcb:
+      enabled: false
+      accounts: []
+  repository:
+    artifactory:
+      enabled: false
+      searches: []
+  security:
+    apiSecurity:
+      ssl:
+        enabled: false
+      overrideBaseUrl: https://spinnaker-api.your.domain
+    uiSecurity:
+      ssl:
+        enabled: false
+      overrideBaseUrl: https://spinnaker.your.domain
+    authn:
+      oauth2:
+        enabled: true
+        client:
+          clientId: secret.apps.googleusercontent.com
+          clientSecret: secret
+          accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+          userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+          scope: profile email
+          preEstablishedRedirectUri: https://your.domain.com/login
+          useCurrentUri: false
+        userInfoRequirements:
+          hd: domain.com
+        resource:
+          userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        userInfoMapping:
+          email: email
+          firstName: given_name
+          lastName: family_name
+        provider: GOOGLE
+      saml:
+        enabled: false
+        userAttributeMapping: {}
+      ldap:
+        enabled: false
+      x509:
+        enabled: false
+      iap:
+        enabled: false
+      enabled: true
+    authz:
+      groupMembership:
+        service: EXTERNAL
+        google:
+          roleProviderType: GOOGLE
+        github:
+          roleProviderType: GITHUB
+        file:
+          roleProviderType: FILE
+        ldap:
+          roleProviderType: LDAP
+      enabled: false
+  artifacts:
+    bitbucket:
+      enabled: false
+      accounts: []
+    gcs:
+      enabled: false
+      accounts: []
+    oracle:
+      enabled: false
+      accounts: []
+    github:
+      enabled: true
+      accounts:
+        - name: github
+          username: spinnaker-bot
+          token: token
+    gitlab:
+      enabled: false
+      accounts: []
+    gitrepo:
+      enabled: true
+      accounts:
+        - name: gitrepo
+          token: token
+    http:
+      enabled: true
+      accounts: []
+    helm:
+      enabled: true
+      accounts:
+        - name: ory
+          repository: https://k8s.ory.sh/helm/charts
+    s3:
+      enabled: true
+      accounts:
+        - name: s3
+          apiRegion: ap-south-1
+    maven:
+      enabled: false
+      accounts: []
+    templates: []
+  pubsub:
+    enabled: false
+    google:
+      enabled: false
+      pubsubType: GOOGLE
+      subscriptions: []
+      publishers: []
+  canary:
+    enabled: false
+    serviceIntegrations:
+      - name: google
+        enabled: false
+        accounts: []
+        gcsEnabled: false
+        stackdriverEnabled: false
+      - name: prometheus
+        enabled: false
+        accounts: []
+      - name: datadog
+        enabled: false
+        accounts: []
+      - name: signalfx
+        enabled: false
+        accounts: []
+      - name: aws
+        enabled: false
+        accounts: []
+        s3Enabled: false
+      - name: newrelic
+        enabled: false
+        accounts: []
+    reduxLoggerEnabled: true
+    defaultJudge: NetflixACAJudge-v1.0
+    stagesEnabled: true
+    templatesEnabled: true
+    showAllConfigsEnabled: true
+  plugins:
+    plugins: []
+    enabled: false
+    downloadingEnabled: false
+  webhook:
+    trust:
+      enabled: false
+  telemetry:
+    enabled: false
+    endpoint: https://stats.spinnaker.io
+    instanceId: 01DWVM2N8469W40Z707S7E310Y
+    connectionTimeoutMillis: 3000
+    readTimeoutMillis: 5000

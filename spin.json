@@ -1,0 +1,141 @@
+{
+    "appConfig": {},
+    "expectedArtifacts": [
+      {
+        "defaultArtifact": {
+          "artifactAccount": "gitrepo",
+          "id": "d8e6de8e-caa7-4d37-9d43-c122f4cf37b5",
+          "metadata": {
+            "subPath": "services/spinnaker"
+          },
+          "reference": "https://github.com/jupitermoney/spinnaker-kustomize.git",
+          "type": "git/repo",
+          "version": "master"
+        },
+        "displayName": "halconfig",
+        "id": "d16d4aa7-3002-4d25-a48e-549309c56a1f",
+        "matchArtifact": {
+          "artifactAccount": "github",
+          "customKind": true,
+          "id": "d47f4b91-86a4-4781-ae66-ede3f1458cbf",
+          "name": "halconfig.yaml",
+          "type": "github/file"
+        },
+        "useDefaultArtifact": true,
+        "usePriorArtifact": false
+      }
+    ],
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "stages": [
+      {
+        "expectedArtifacts": [
+          {
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "acecfe9b-55fa-4f81-8805-6872f1885ea4"
+            },
+            "displayName": "halyard",
+            "id": "e5f0be09-6556-4bee-9dee-ea7f0ade18a8",
+            "matchArtifact": {
+              "id": "d8a0a2e6-c5f8-4ad9-b353-015325b24089",
+              "name": "halyard",
+              "type": "embedded/base64"
+            },
+            "useDefaultArtifact": false,
+            "usePriorArtifact": false
+          }
+        ],
+        "inputArtifact": {
+          "account": "gitrepo",
+          "id": "d16d4aa7-3002-4d25-a48e-549309c56a1f"
+        },
+        "inputArtifacts": [],
+        "kustomizeFilePath": "kustomization.yaml",
+        "name": "Bake (Manifest)",
+        "overrides": {},
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "templateRenderer": "KUSTOMIZE",
+        "type": "bakeManifest"
+      },
+      {
+        "account": "dev",
+        "cloudProvider": "kubernetes",
+        "manifestArtifactAccount": "embedded-artifact",
+        "manifestArtifactId": "e5f0be09-6556-4bee-9dee-ea7f0ade18a8",
+        "moniker": {
+          "app": "spin"
+        },
+        "name": "Deploy (Manifest)",
+        "namespaceOverride": "",
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "skipExpressionEvaluation": false,
+        "source": "artifact",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "account": "dev",
+        "app": "spin",
+        "cloudProvider": "kubernetes",
+        "location": "spinnaker",
+        "manifestName": "job hal-deploy-apply",
+        "mode": "static",
+        "name": "Delete (Manifest)",
+        "options": {
+          "cascading": true,
+          "gracePeriodSeconds": 5
+        },
+        "refId": "8",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "type": "deleteManifest"
+      },
+      {
+        "account": "audit",
+        "app": "spin",
+        "cloudProvider": "kubernetes",
+        "completeOtherBranchesThenFail": false,
+        "continuePipeline": true,
+        "failPipeline": false,
+        "location": "spinnaker",
+        "manifestName": "statefulSet spin-halyard",
+        "mode": "static",
+        "name": "Scale (Manifest)",
+        "refId": "9",
+        "replicas": "0",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "restrictExecutionDuringTimeWindow": false,
+        "type": "scaleManifest"
+      }
+    ],
+    "triggers": [
+      {
+        "branch": "master",
+        "enabled": true,
+        "expectedArtifactIds": [
+          "d16d4aa7-3002-4d25-a48e-549309c56a1f"
+        ],
+        "project": "jupitermoney",
+        "secret": "8da2f449b6c45828426957aabd92460389aaf262b640a0c0a0104c75bd09b963",
+        "slug": "spinnaker-kustomize",
+        "source": "github",
+        "type": "git"
+      }
+    ],
+    "updateTs": "1579367063000"
+  }
+  
